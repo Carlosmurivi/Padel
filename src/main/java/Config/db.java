@@ -30,13 +30,12 @@ public class db {
             return;
         }
 
-    	String query = "SELECT * FROM users WHERE email = ? AND password = ?";
+    	String query = "SELECT * FROM users WHERE email = ?";
 
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
              
             stmt.setString(1, email);
-            stmt.setString(2, password);
 
             ResultSet rs = stmt.executeQuery();
 
@@ -49,6 +48,6 @@ public class db {
         }
     }
     public static void main(String[] args) {
-		login("Carlos", "12345");
+		login("forky@mail.com", "12345");
 	}
 }
