@@ -1,25 +1,28 @@
 package Controllers;
 
+import java.io.IOException;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import javax.servlet.http.HttpSession;
+
 import org.mindrot.jbcrypt.BCrypt;
+
+import Config.HibernateDBUser;
+import Model.User;
 
 @WebServlet("/auth")
 public class Auth extends HttpServlet {
 
+    private static final long serialVersionUID = 1L;
+    private final HibernateDBUser hibernateDBUser = new HibernateDBUser();
+
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         String action = request.getParameter("action");
 
         if ("login".equalsIgnoreCase(action)) {
@@ -27,7 +30,7 @@ public class Auth extends HttpServlet {
         } else if ("register".equalsIgnoreCase(action)) {
             handleRegister(request, response);
         } else {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Acción inválida");
         }
     }
 
@@ -35,41 +38,28 @@ public class Auth extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
-        if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
-            request.getSession().setAttribute("error", "Todos los campos son obligatorios.");
+        if (camposVacios(email, password)) {
+            setError(request, "error", "Todos los campos son obligatorios.");
             response.sendRedirect(request.getContextPath() + "/");
             return;
         }
 
-        try (Connection db = Database.getConnection()) {
-            String query = "SELECT * FROM users WHERE email = ?";
-            try (PreparedStatement stmt = db.prepareStatement(query)) {
-                stmt.setString(1, email);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        String hashedPassword = rs.getString("password");
-                        if (BCrypt.checkpw(password, hashedPassword)) {
-                            HttpSession session = request.getSession();
-                            session.setAttribute("user", new User(
-                                    rs.getInt("id"),
-                                    rs.getString("name"),
-                                    rs.getString("last_name"),
-                                    rs.getString("email")
-                            ));
-                            response.sendRedirect(request.getContextPath() + "/reservations/make");
-                        } else {
-                            request.getSession().setAttribute("error", "Credenciales incorrectas.");
-                            response.sendRedirect(request.getContextPath() + "/");
-                        }
-                    } else {
-                        request.getSession().setAttribute("error", "El usuario no existe.");
-                        response.sendRedirect(request.getContextPath() + "/");
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            throw new IOException("Database error", e);
+        User user = hibernateDBUser.findUserByEmail(email);
+        if (user == null) {
+            setError(request, "error", "El usuario no existe.");
+            response.sendRedirect(request.getContextPath() + "/");
+            return;
         }
+
+        if (!BCrypt.checkpw(password, user.getPassword())) {
+            setError(request, "error", "Credenciales incorrectas.");
+            response.sendRedirect(request.getContextPath() + "/");
+            return;
+        }
+
+        HttpSession session = request.getSession();
+        session.setAttribute("user", user);
+        response.sendRedirect(request.getContextPath() + "/reservations/make");
     }
 
     private void handleRegister(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -78,34 +68,36 @@ public class Auth extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
-        if (name == null || name.isEmpty() || lastname == null || lastname.isEmpty()
-                || email == null || email.isEmpty() || password == null || password.isEmpty()) {
-            request.getSession().setAttribute("register_error", "Todos los campos son obligatorios.");
+        if (camposVacios(name, lastname, email, password)) {
+            setError(request, "register_error", "Todos los campos son obligatorios.");
             response.sendRedirect(request.getContextPath() + "/register");
             return;
         }
 
         String passwordHash = BCrypt.hashpw(password, BCrypt.gensalt());
+        User newUser = new User(name, lastname, email, passwordHash);
 
-        try (Connection db = Database.getConnection()) {
-            String query = "INSERT INTO users (name, last_name, email, password) VALUES (?, ?, ?, ?)";
-            try (PreparedStatement stmt = db.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
-                stmt.setString(1, name);
-                stmt.setString(2, lastname);
-                stmt.setString(3, email);
-                stmt.setString(4, passwordHash);
-
-                int affectedRows = stmt.executeUpdate();
-                if (affectedRows > 0) {
-                    response.sendRedirect(request.getContextPath() + "/");
-                } else {
-                    request.getSession().setAttribute("register_error", "Error al registrar el usuario.");
-                    response.sendRedirect(request.getContextPath() + "/register");
-                }
-            }
-        } catch (SQLException e) {
-            request.getSession().setAttribute("register_error", "Error al registrar el usuario: " + e.getMessage());
+        try {
+            hibernateDBUser.saveUser(newUser);
+            response.sendRedirect(request.getContextPath() + "/");
+        } catch (Exception e) {
+            setError(request, "register_error", "Error al registrar: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/register");
         }
+    }
+
+    // Métodos auxiliares
+    private boolean camposVacios(String... campos) {
+        for (String campo : campos) {
+            if (campo == null || campo.trim().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void setError(HttpServletRequest request, String tipo, String mensaje) {
+        HttpSession session = request.getSession();
+        session.setAttribute(tipo, mensaje);
     }
 }
