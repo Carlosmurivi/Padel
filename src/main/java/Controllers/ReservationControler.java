@@ -7,6 +7,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import Config.HibernateDBReservation;
+
 /**
  * Servlet implementation class ReservationControler
  */
@@ -26,7 +28,10 @@ public class ReservationControler extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		HibernateDBReservation reservation = new HibernateDBReservation();
 		
+		request.setAttribute("listaPistas", reservation.leerTodasLasPistas());
+		request.getRequestDispatcher("jsp/reservations/makeReservation.jsp").forward(request, response);
 	}
 
 	/**

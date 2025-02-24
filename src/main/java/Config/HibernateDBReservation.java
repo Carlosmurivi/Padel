@@ -7,30 +7,32 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
 import Model.Pista;
-import Model.Tip;
 
 public class HibernateDBReservation {
-	Session sesion;
-	
-	public HibernateDBReservation(){
-		sesion = HibernateDB.getSession(Pista.class);
-	}
-	
-	public List<Pista> leerTodasLasPistas() {
-		List<Pista> pista= null;
-		
-		try {
-			sesion.beginTransaction();
-			pista = sesion.createQuery("from pistas" , Pista.class).getResultList();
-			sesion.getTransaction().commit();
-			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return pista;
-	}
-	
-	
+    private Session sesion;
+
+    public HibernateDBReservation() {
+        sesion = HibernateDB.getSession(Pista.class);
+    }
+
+    public List<Pista> leerTodasLasPistas() {
+        List<Pista> pistas = null;
+        
+        try {
+            sesion.beginTransaction();
+            pistas = sesion.createQuery("from Pista", Pista.class).getResultList();
+            sesion.getTransaction().commit();
+        } catch (Exception e) {
+            if (sesion.getTransaction() != null) {
+                sesion.getTransaction().rollback(); // Rollback en caso de error
+            }
+            e.printStackTrace();
+        } finally {
+            if (sesion != null && sesion.isOpen()) {
+                sesion.close(); // Cerrar sesión para evitar fugas
+            }
+        }
+        
+        return pistas;
+    }
 }
