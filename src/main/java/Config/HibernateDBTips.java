@@ -8,12 +8,10 @@ import org.hibernate.cfg.Configuration;
 import Model.Tip;
 
 public class HibernateDBTips {
-	SessionFactory factory;
 	Session sesion;
 	
 	public HibernateDBTips(){
-		factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Tip.class).buildSessionFactory();
-		sesion=factory.openSession();
+		sesion = HibernateDB.getSession(Tip.class);
 	}
 	
 	public Tip leerTipPorId(int id) {
@@ -40,15 +38,5 @@ public class HibernateDBTips {
 	    } finally {
 	    }
 	    return tips;
-	}
-	
-	public static void main(String[] args) {
-		HibernateDBTips hdb = new HibernateDBTips();
-		
-		List<Tip> tips = hdb.leerTips();
-		
-		for(Tip tip: tips) {
-			System.out.println("ID: " + tip.getId() + " Titulo: " + tip.getTitulo());
-		}
 	}
 }
