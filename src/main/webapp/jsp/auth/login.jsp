@@ -1,3 +1,4 @@
+<%@page import="Controllers.Auth"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
     <!DOCTYPE html>
     <html>
@@ -8,7 +9,7 @@
     </head>
 
     <body>
-        <form action="/auth" method="post">
+        <form action="../../auth" method="post">
             <input type="hidden" name="action" value="login">
             <div>
                 <label for="email">Email:</label>
