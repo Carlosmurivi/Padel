@@ -11,7 +11,7 @@ public class HibernateDBTips {
 	Session sesion;
 	
 	public HibernateDBTips(){
-		sesion = HibernateDB.getSession();
+		sesion = HibernateDB.getSession(Tip.class);
 	}
 	
 	public Tip leerTipPorId(int id) {

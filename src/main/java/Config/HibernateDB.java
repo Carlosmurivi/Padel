@@ -12,8 +12,8 @@ public class HibernateDB {
 	private static SessionFactory factory;
 	private static Session sesion;
 	
-	public static Session getSession() throws HibernateException {
-		factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Tip.class).buildSessionFactory();
+	public static Session getSession(Class clase) throws HibernateException {
+		factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(clase).buildSessionFactory();
 		sesion=factory.openSession();
 		return sesion;
 	}

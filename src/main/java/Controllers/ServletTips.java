@@ -19,8 +19,12 @@ import Model.Tip;
 @WebServlet("/ServletTips")
 public class ServletTips extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	
+	
     private HibernateDBTips hibernateDBTips = new HibernateDBTips();
 	
+    
+    
     /**
      * @see HttpServlet#HttpServlet()
      */
