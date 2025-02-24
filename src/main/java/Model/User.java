@@ -20,12 +20,26 @@ public class User {
     @Column(name = "password")
     private String password;
 
-    public User(String email, int id, String lastName, String name, String password) {
-        this.email = email;
+    public User(int id, String name, String lastName, String email, String password) {
         this.id = id;
-        this.lastName = lastName;
         this.name = name;
+        this.lastName = lastName;
+        this.email = email;
         this.password = password;
+    }
+
+    public User(String name, String lastName, String email, String password) {
+        this.name = name;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+    }
+
+    public User(int id, String name, String lastName, String email) {
+        this.id = id;
+        this.name = name;
+        this.lastName = lastName;
+        this.email = email;
     }
 
     public User() {
@@ -70,6 +84,4 @@ public class User {
     public void setPassword(String password) {
         this.password = password;
     }
-
-
 }
