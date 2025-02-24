@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hibernate-configuration>
+    <session-factory>
+        <!-- Configuración de la conexión a la base de datos -->
+        <property name="hibernate.connection.driver_class">org.postgresql.Driver</property>
+        <property name="hibernate.connection.url">jdbc:postgresql://ep-sweet-mountain-a8qbzzx0.eastus2.azure.neon.tech/neondb?sslmode=require</property>
+        <property name="hibernate.connection.username">neondb_owner</property>
+        <property name="hibernate.connection.password">npg_ORn5JSxC2Bur</property>
+        
+
+        <!-- Dialecto de Hibernate -->
+        <property name="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</property>
+		<property name="hibernate.show_sql">true</property>
+		<mapping class="Model.Tip"/>
+		
+        </session-factory>
+</hibernate-configuration>
